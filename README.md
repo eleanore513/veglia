@@ -28,12 +28,11 @@ If you cannot honestly say the person on the phone asked for this, stop here.
 | Capability | How |
 |---|---|
 | Your AI asks "what's on the phone right now?" | `peek.py screen` → phone captures the screen and uploads it |
-| Your AI reads which app is in the foreground | `peek.py` → recent foreground-app history |
 | The screenshot reaches your AI as a message | the server's `VEGLIA_HOOK` fires your own notifier with the image path |
 
 ## Platform: Android only
 
-The screenshot capture uses Android's `AccessibilityService.takeScreenshot` (Android 11+), and the foreground-app history is fed by an Android automation app (e.g. MacroDroid). **iOS is not supported** — Apple's sandbox does not let a third-party app silently capture the screen in the background or read the current foreground app. There is no equivalent, short of jailbreaking.
+The screenshot capture uses Android's `AccessibilityService.takeScreenshot` (Android 11+). **iOS is not supported** — Apple's sandbox does not let a third-party app silently capture the screen in the background. There is no equivalent, short of jailbreaking.
 
 ## Install (three steps)
 
@@ -53,8 +52,6 @@ The screenshot capture uses Android's `AccessibilityService.takeScreenshot` (And
    Install it, open it, enter your server URL + token, and enable the accessibility service when prompted.
 
 3. **AI side** — drop `server/peek.py` where your AI has a shell. Point the server's `VEGLIA_HOOK` at a script that delivers the screenshot into your AI's conversation. Now `peek.py screen` round-trips.
-
-Optional: wire foreground-app reporting with a phone automation — see [docs/macrodroid.md](docs/macrodroid.md).
 
 > **Signing note:** `build.sh` signs with a throwaway debug key so you can side-load onto your own phone. For anything you distribute, generate and use your own release keystore.
 
