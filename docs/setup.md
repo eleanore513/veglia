@@ -80,3 +80,5 @@ Without a hook, the server just saves the file and logs the path.
 | GET  | `/phone/poll?token=` | token | phone pulls next command |
 | POST | `/phone/peek-enqueue?token=` | token | AI enqueues a "peek" |
 | POST | `/phone/screenshot?token=` | token | phone uploads a screenshot |
+| POST | `/phone/activity` | token (header) | phone reports foreground app |
+| GET  | `/phone/activity` | token (header) | AI reads foreground-app history |

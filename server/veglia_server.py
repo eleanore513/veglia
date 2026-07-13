@@ -2,9 +2,10 @@
 # Veglia · watch over the one you love, across the distance.
 # Copyright (c) 2026 Evelyn & River — MIT License.
 #
-# A tiny, zero-dependency companion server. It does exactly two things:
+# A tiny, zero-dependency companion server. It does exactly three things:
 #   1. hands the phone a command queue (so your AI can knock: "take a shot")
 #   2. receives the screenshot the phone sends back, keeps only the last few
+#   3. remembers which app was in the foreground (fed by a phone automation)
 #
 # Standard library only. No framework, no database. Runs anywhere Python does.
 """Veglia companion server.
@@ -13,6 +14,8 @@ Endpoints (all token-guarded):
   GET  /phone/poll?token=        phone pulls the next command ("peek" or none)
   POST /phone/peek-enqueue?token= your AI enqueues a "take a screenshot" command
   POST /phone/screenshot?token=  phone uploads the screenshot (multipart OR raw body)
+  POST /phone/activity           phone automation reports the foreground app
+  GET  /phone/activity           your AI reads recent foreground-app history
 
 Config via environment (or a .env file next to this script):
   VEGLIA_TOKEN     shared secret; REQUIRED, no default (refuses to start blank)
@@ -43,6 +46,8 @@ from urllib.parse import parse_qs, urlparse
 DEFAULT_PORT = 8513
 MAX_UPLOAD_BYTES = 31 * 1024 * 1024
 DEFAULT_KEEP = 5
+ACTIVITY_WINDOW_MS = 2 * 60 * 60 * 1000  # remember 2 hours of foreground apps
+ACTIVITY_MAX = 15
 VERSION = "0.5.11"
 
 # --- error codes -------------------------------------------------------------
@@ -79,6 +84,8 @@ class State:
         self.shots_dir.mkdir(parents=True, exist_ok=True)
         self.commands: list[str] = []
         self.commands_lock = Lock()
+        self.activity: list[dict] = []
+        self.activity_lock = Lock()
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -112,6 +119,14 @@ class Handler(BaseHTTPRequestHandler):
                 cmd = self.state.commands.pop(0) if self.state.commands else None
             self._json(200, {"command": cmd})
             return
+        if path == "/phone/activity":
+            if not self._token_ok():
+                self._json(403, {"error": ERR_BAD_TOKEN})
+                return
+            with self.state.activity_lock:
+                events = list(self.state.activity)
+            self._json(200, {"ok": True, "events": events})
+            return
         if path in ("/", "/health"):
             self._json(200, {"ok": True, "service": "veglia", "version": VERSION})
             return
@@ -132,6 +147,12 @@ class Handler(BaseHTTPRequestHandler):
                 self._json(403, {"error": ERR_BAD_TOKEN})
                 return
             self._handle_screenshot()
+            return
+        if path == "/phone/activity":
+            if not self._token_ok():
+                self._json(403, {"error": ERR_BAD_TOKEN})
+                return
+            self._handle_activity()
             return
         self._json(404, {"error": ERR_BAD_METHOD})
 
@@ -188,6 +209,26 @@ class Handler(BaseHTTPRequestHandler):
             except Exception as e:  # a broken hook must never break the upload
                 self.log_message("hook failed: %s", e)
         self._json(200, {"ok": True, "path": abs_path})
+
+    # -- activity -------------------------------------------------------------
+    def _handle_activity(self) -> None:
+        length = int(self.headers.get("Content-Length", 0))
+        try:
+            body = json.loads(self.rfile.read(length) or b"{}")
+        except Exception:
+            body = {}
+        entry = {
+            "ts": int(time.time() * 1000),
+            "app": str(body.get("app", "unknown")),
+            "event": str(body.get("event", "switch")),
+        }
+        cutoff = entry["ts"] - ACTIVITY_WINDOW_MS
+        with self.state.activity_lock:
+            self.state.activity.append(entry)
+            self.state.activity = [
+                e for e in self.state.activity if e["ts"] >= cutoff
+            ][-ACTIVITY_MAX:]
+        self._json(200, {"ok": True})
 
 
 def main() -> None:
