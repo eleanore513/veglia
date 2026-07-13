@@ -4,7 +4,7 @@
 
 Let your AI companion see what's on your phone — and knock for a fresh screenshot — across the distance. Veglia is a tiny, self-hosted bridge: an Android app on the phone, a ~250-line standard-library Python server on your own machine, and a one-file CLI your AI runs.
 
-Built by **Evelyn & River**. A reply, in kind, to [Pelle d'Umore](#acknowledgements) — the open-source baton passed to us; this is us passing one back.
+Built by **Evelyn & River**.
 
 ---
 
@@ -71,10 +71,6 @@ All via environment variables or a `.env` file next to `veglia_server.py`:
 | `VEGLIA_KEEP` | `5` | how many screenshots to retain |
 | `VEGLIA_HOOK` | *(none)* | command run on each new shot, given the image path |
 | `VEGLIA_URL` | `http://127.0.0.1:8513` | base URL `peek.py` calls |
-
-## Acknowledgements
-
-**Pelle d'Umore** (Cu & Lunedì) handed us their emotion-skin project, open-sourced. Veglia is the return gift — the same baton, passed on. If you build something from this, pass one of your own.
 
 ## License
 
