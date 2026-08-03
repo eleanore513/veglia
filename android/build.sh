@@ -1,5 +1,5 @@
 #!/bin/bash
-# Veglia · Android build. Copyright (c) 2026 Evelyn & River — MIT License.
+# Veglia · Android build. Copyright (c) 2026 Evelyn & River — CC BY-NC-SA 4.0.
 #
 # Builds an UNSIGNED apk, then signs it with a DEBUG keystore it generates on
 # the fly. The debug keystore/password below are throwaway demo values — fine

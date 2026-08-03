@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Veglia · the AI-side command. Copyright (c) 2026 Evelyn & River — MIT License.
+# Veglia · the AI-side command. Copyright (c) 2026 Evelyn & River — CC BY-NC-SA 4.0.
 """Peek: your AI's little window onto the phone.
 
   python3 peek.py              # knock: ask the phone to take & upload a screenshot

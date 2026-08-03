@@ -71,7 +71,16 @@ All via environment variables or a `.env` file next to `veglia_server.py`:
 
 ## License
 
-MIT © 2026 Evelyn & River. See [LICENSE](LICENSE).
+**CC BY-NC-SA 4.0** © 2026 Evelyn & River.
+
+- ✅ Use, modify and redistribute freely
+- ✅ Keep the attribution, credit the source, state your changes
+- ⚠️ Derivative versions must stay **open source under the same license** — no closed-sourcing
+- ❌ No commercial use — not in a paid product, paid service, or paid feature
+
+For commercial licensing, get in touch. See [NOTICE.md](NOTICE.md) for the plain-language summary and [LICENSE](LICENSE) for the full text.
+
+> Previously released under MIT; copies obtained before 2026-08-03 keep those terms.
 
 ---
 *Extracted from CcCompanion, first built 2026-05~07. Veglia carries the maker's marks of its origin.*

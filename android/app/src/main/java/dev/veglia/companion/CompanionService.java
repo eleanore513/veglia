@@ -1,4 +1,4 @@
-// Veglia · foreground poll service. Copyright (c) 2026 Evelyn & River — MIT License.
+// Veglia · foreground poll service. Copyright (c) 2026 Evelyn & River — CC BY-NC-SA 4.0.
 package dev.veglia.companion;
 
 import android.app.Notification;

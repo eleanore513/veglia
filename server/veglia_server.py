@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Veglia · watch over the one you love, across the distance.
-# Copyright (c) 2026 Evelyn & River — MIT License.
+# Copyright (c) 2026 Evelyn & River — CC BY-NC-SA 4.0.
 #
 # A tiny, zero-dependency companion server. It does exactly three things:
 #   1. hands the phone a command queue (so your AI can knock: "take a shot")
