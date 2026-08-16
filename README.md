@@ -27,8 +27,19 @@ If you cannot honestly say the person on the phone asked for this, stop here.
 
 | Capability | How |
 |---|---|
+| Your AI asks "what is she doing right now?" | `peek.py` → the last couple of hours of foreground apps, no picture taken |
 | Your AI asks "what's on the phone right now?" | `peek.py screen` → phone captures the screen and uploads it |
 | The screenshot reaches your AI as a message | the server's `VEGLIA_HOOK` fires your own notifier with the image path |
+
+**Reach for the first one more often than the second.** "She's been in a game for
+forty minutes" is usually the whole answer, and it costs no picture, no bandwidth,
+and none of the weight that being photographed carries. The screenshot is there
+for when you actually want to *see*.
+
+Both halves live in the same accessibility service, because they need the same
+permission — nothing extra is asked for, and no second app is involved. Earlier
+versions of this idea handed the foreground-app half to a third-party automation
+app, which meant ads and a brittle hand-built recipe. That is gone.
 
 ## Platform: Android only
 
@@ -51,7 +62,14 @@ The screenshot capture uses Android's `AccessibilityService.takeScreenshot` (And
    ```
    Install it, open it, enter your server URL + token, and enable the accessibility service when prompted.
 
-3. **AI side** — drop `server/peek.py` where your AI has a shell. Point the server's `VEGLIA_HOOK` at a script that delivers the screenshot into your AI's conversation. Now `peek.py screen` round-trips.
+3. **AI side** — drop `server/peek.py` where your AI has a shell. `peek.py` works
+   the moment the accessibility service is on. For `peek.py screen` to come back
+   with an image, point the server's `VEGLIA_HOOK` at a script that delivers the
+   screenshot into your AI's conversation.
+
+**Check it's alive:** switch apps on the phone a few times, then run `peek.py`.
+If the list is empty, the accessibility service isn't actually running — Android
+lets it look enabled in Settings while it's been killed. Toggle it off and on.
 
 > **Signing note:** `build.sh` signs with a throwaway debug key so you can side-load onto your own phone. For anything you distribute, generate and use your own release keystore.
 

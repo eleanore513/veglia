@@ -5,6 +5,8 @@
 # A tiny, zero-dependency companion server. It does exactly three things:
 #   1. hands the phone a command queue (so your AI can knock: "take a shot")
 #   2. receives the screenshot the phone sends back, keeps only the last few
+#   3. remembers which app was in the foreground, so your AI can ask
+#      "what is she up to right now?" without taking a picture at all
 #
 # Standard library only. No framework, no database. Runs anywhere Python does.
 """Veglia companion server.
@@ -13,6 +15,8 @@ Endpoints (all token-guarded):
   GET  /phone/poll?token=        phone pulls the next command ("peek" or none)
   POST /phone/peek-enqueue?token= your AI enqueues a "take a screenshot" command
   POST /phone/screenshot?token=  phone uploads the screenshot (multipart OR raw body)
+  POST /phone/activity?token=    phone reports an app that just came to the front
+  GET  /phone/activity?token=    your AI reads the recent foreground-app history
 Config via environment (or a .env file next to this script):
   VEGLIA_TOKEN     shared secret; REQUIRED, no default (refuses to start blank)
   VEGLIA_PORT      listen port (default 8513)
@@ -42,7 +46,14 @@ from urllib.parse import parse_qs, urlparse
 DEFAULT_PORT = 8513
 MAX_UPLOAD_BYTES = 31 * 1024 * 1024
 DEFAULT_KEEP = 5
-VERSION = "0.5.11"
+VERSION = "0.6.0"
+
+# --- foreground-app memory ----------------------------------------------------
+# Deliberately tiny and in-memory: this is a "what is she doing right now"
+# signal, not a surveillance log. It evaporates when the server restarts, and
+# anything older than two hours falls off on its own.
+ACTIVITY_WINDOW_MS = 2 * 60 * 60 * 1000
+ACTIVITY_MAX = 15
 
 # --- error codes -------------------------------------------------------------
 ERR_BAD_TOKEN = "LUYU_ERR_BAD_TOKEN"
@@ -78,6 +89,8 @@ class State:
         self.shots_dir.mkdir(parents=True, exist_ok=True)
         self.commands: list[str] = []
         self.commands_lock = Lock()
+        self.activity: list[dict] = []
+        self.activity_lock = Lock()
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -111,6 +124,14 @@ class Handler(BaseHTTPRequestHandler):
                 cmd = self.state.commands.pop(0) if self.state.commands else None
             self._json(200, {"command": cmd})
             return
+        if path == "/phone/activity":
+            if not self._token_ok():
+                self._json(403, {"error": ERR_BAD_TOKEN})
+                return
+            with self.state.activity_lock:
+                events = list(self.state.activity)
+            self._json(200, {"ok": True, "events": events})
+            return
         if path in ("/", "/health"):
             self._json(200, {"ok": True, "service": "veglia", "version": VERSION})
             return
@@ -132,7 +153,38 @@ class Handler(BaseHTTPRequestHandler):
                 return
             self._handle_screenshot()
             return
+        if path == "/phone/activity":
+            if not self._token_ok():
+                self._json(403, {"error": ERR_BAD_TOKEN})
+                return
+            self._handle_activity()
+            return
         self._json(404, {"error": ERR_BAD_METHOD})
+
+    # -- activity -------------------------------------------------------------
+    def _handle_activity(self) -> None:
+        """Record one foreground-app switch reported by the phone.
+
+        The phone already de-duplicates consecutive events for the same package,
+        so every entry that lands here is a real change of what she is looking at.
+        """
+        length = int(self.headers.get("Content-Length", 0))
+        try:
+            body = json.loads(self.rfile.read(length) or b"{}")
+        except Exception:
+            body = {}
+        entry = {
+            "ts": int(time.time() * 1000),
+            "app": str(body.get("app", "unknown")),
+            "event": str(body.get("event", "switch")),
+        }
+        cutoff = entry["ts"] - ACTIVITY_WINDOW_MS
+        with self.state.activity_lock:
+            self.state.activity.append(entry)
+            self.state.activity = [
+                e for e in self.state.activity if e["ts"] >= cutoff
+            ][-ACTIVITY_MAX:]
+        self._json(200, {"ok": True})
 
     # -- screenshot -----------------------------------------------------------
     def _handle_screenshot(self) -> None:

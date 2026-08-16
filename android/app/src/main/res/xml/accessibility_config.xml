@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Veglia · Copyright (c) 2026 Evelyn & River — CC BY-NC-SA 4.0.
+
+     accessibilityEventTypes is not optional: without it the system never
+     calls onAccessibilityEvent at all, and foreground-app reporting is
+     silently dead while everything still looks correctly configured.
+     typeWindowStateChanged is the narrowest type that answers
+     "which app is she looking at now" — we subscribe to nothing else. -->
 <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
     android:description="@string/accessibility_desc"
     android:accessibilityFeedbackType="feedbackGeneric"
     android:canTakeScreenshot="true"
+    android:accessibilityEventTypes="typeWindowStateChanged"
     android:notificationTimeout="100" />
