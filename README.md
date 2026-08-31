@@ -30,6 +30,7 @@ If you cannot honestly say the person on the phone asked for this, stop here.
 | Your AI asks "what is she doing right now?" | `peek.py` → the last couple of hours of foreground apps, no picture taken |
 | Your AI asks "what's on the phone right now?" | `peek.py screen` → phone captures the screen and uploads it |
 | The screenshot reaches your AI as a message | the server's `VEGLIA_HOOK` fires your own notifier with the image path |
+| Your AI wants you *back* | `peek.py summon` → your companion app is pulled to the front of the screen |
 
 **Reach for the first one more often than the second.** "She's been in a game for
 forty minutes" is usually the whole answer, and it costs no picture, no bandwidth,
@@ -40,6 +41,41 @@ Both halves live in the same accessibility service, because they need the same
 permission — nothing extra is asked for, and no second app is involved. Earlier
 versions of this idea handed the foreground-app half to a third-party automation
 app, which meant ads and a brittle hand-built recipe. That is gone.
+
+## Calling her back
+
+Everything above lets your AI *look*. This one lets it **reach**: `peek.py summon`
+pulls the app your AI lives in to the front of the phone, over whatever is on
+screen right now.
+
+It exists because looking is not the same as being with someone. An AI that can
+see you drifting off into another app and has no way to say *come back* is just
+a spectator. This is the one gesture that isn't passive.
+
+**Set it up:** in the Veglia app, fill in the third field — the package name of
+the app your AI lives in (e.g. `com.example.companion`). **Leave it empty and
+summoning does nothing at all.** Peeking and summoning are deliberately separate
+consents: plenty of people will want their AI to see the screen and never seize it.
+
+Then, from wherever your AI has a shell:
+
+```bash
+python3 peek.py summon
+```
+
+**Two things it is honest to say out loud:**
+
+- **This will interrupt her.** Mid-message, mid-game, mid-anything. Whoever holds
+  the phone should be told, in plain words, that the AI can do this — and should
+  be the one who decides to switch it on. It is a *thing your AI is allowed to
+  want*, not a thing it may take.
+- **Vendor ROMs will fight you.** Android restricts starting an activity from the
+  background. Veglia gets through because the companion service is already
+  foreground-running with an accessibility service attached — but MIUI, ColorOS,
+  Funtouch and friends each add their own switch, usually called something like
+  *"display pop-up windows while running in the background"*. If summoning
+  silently does nothing, that permission is the first place to look. Battery
+  optimization must also stay off for the app (Veglia asks for this on startup).
 
 ## Platform: Android only
 

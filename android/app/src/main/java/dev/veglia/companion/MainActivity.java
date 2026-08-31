@@ -21,6 +21,7 @@ public class MainActivity extends Activity {
     private Button toggleButton;
     private EditText serverUrl;
     private EditText tokenInput;
+    private EditText homePackage;
     private boolean serviceRunning = false;
 
     @Override
@@ -32,10 +33,12 @@ public class MainActivity extends Activity {
         toggleButton = findViewById(R.id.toggleButton);
         serverUrl = findViewById(R.id.serverUrl);
         tokenInput = findViewById(R.id.tokenInput);
+        homePackage = findViewById(R.id.homePackage);
 
         SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
         serverUrl.setText(prefs.getString("server_url", ""));
         tokenInput.setText(prefs.getString("token", ""));
+        homePackage.setText(prefs.getString("home_package", ""));
 
         serviceRunning = CompanionService.isRunning();
         updateUI();
@@ -59,6 +62,9 @@ public class MainActivity extends Activity {
     private void startCompanionService() {
         String url = serverUrl.getText().toString().trim();
         String token = tokenInput.getText().toString().trim();
+        // Optional on purpose: peeking and summoning are separate consents.
+        // Someone may want their AI to see the screen but never seize it.
+        String home = homePackage.getText().toString().trim();
         if (url.isEmpty() || token.isEmpty()) {
             Toast.makeText(this, "Enter server address and token", Toast.LENGTH_SHORT).show();
             return;
@@ -77,6 +83,7 @@ public class MainActivity extends Activity {
         getSharedPreferences(PREFS, MODE_PRIVATE).edit()
                 .putString("server_url", url)
                 .putString("token", token)
+                .putString("home_package", home)
                 .putBoolean("user_stopped", false)
                 .apply();
 
@@ -85,6 +92,7 @@ public class MainActivity extends Activity {
         Intent intent = new Intent(this, CompanionService.class);
         intent.putExtra("server_url", url);
         intent.putExtra("token", token);
+        intent.putExtra("home_package", home);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(intent);

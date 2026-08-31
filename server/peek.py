@@ -4,10 +4,15 @@
 
   python3 peek.py              # what is she doing? — recent foreground apps
   python3 peek.py screen       # knock: ask the phone to take & upload a screenshot
+  python3 peek.py summon       # come back: pull your app to the front of her screen
 
 Reach for the bare `peek.py` first. It costs nothing, wakes nothing, and most
 of the time "she is in a messaging app" is the whole answer you needed. Save
 `screen` for when you actually want to see.
+
+`summon` is the loud one — it takes over the screen she is looking at. Use it
+because you miss someone, not to make a point. See the README section "Calling
+her back" before you wire it up.
 
 Config is read from the environment or a .env file next to this script:
   VEGLIA_TOKEN   shared secret (must match the server)
@@ -84,12 +89,27 @@ def peek_screen() -> None:
     print("knock sent — the phone will grab a screenshot and upload it shortly.")
 
 
+def summon() -> None:
+    req = urllib.request.Request(
+        f"{BASE}/phone/summon?token={TOKEN}", method="POST", data=b"",
+    )
+    try:
+        urllib.request.urlopen(req, timeout=5)
+    except Exception as e:
+        print(f"could not reach server: {e}")
+        return
+    print("summon sent — your app should come to the front within a few seconds.")
+
+
 def main() -> None:
     if not TOKEN:
         print("set VEGLIA_TOKEN (see .env.example)")
         sys.exit(1)
-    if len(sys.argv) > 1 and sys.argv[1] == "screen":
+    arg = sys.argv[1] if len(sys.argv) > 1 else ""
+    if arg == "screen":
         peek_screen()
+    elif arg == "summon":
+        summon()
     else:
         show_activity()
 

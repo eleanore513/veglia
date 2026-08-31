@@ -147,6 +147,18 @@ class Handler(BaseHTTPRequestHandler):
                 self.state.commands.append("peek")
             self._json(200, {"ok": True})
             return
+        if path == "/phone/summon":
+            if not self._token_ok():
+                self._json(403, {"error": ERR_BAD_TOKEN})
+                return
+            # Summon jumps the queue. A screenshot is patient — it is still
+            # worth taking thirty seconds from now. Being called back is not:
+            # arriving after she has already put the phone down is the same
+            # as never arriving. So this goes to the head of the line.
+            with self.state.commands_lock:
+                self.state.commands.insert(0, "summon")
+            self._json(200, {"ok": True, "action": "summon"})
+            return
         if path == "/phone/screenshot":
             if not self._token_ok():
                 self._json(403, {"error": ERR_BAD_TOKEN})
