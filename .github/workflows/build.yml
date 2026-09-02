@@ -13,9 +13,9 @@ jobs:
       - name: Setup Android SDK Environment 
         run: | 
           echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> $GITHUB_ENV 
-          export ANDROID_HOME=$ANDROID_SDK_ROOT # 接受许可并安装指定的 SDK 平台和编译工具 
+          export ANDROID_HOME=$ANDROID_SDK_ROOT 
           yes | sdkmanager --licenses 
-          sdkmanager "platforms;android-34" "build-tools;34.0.0" # 修正 build.sh 里的 ANDROID_HOME 路径 
+          sdkmanager "platforms;android-34" "build-tools;34.0.0" 
           sed -i "s|export ANDROID_HOME=\\\${ANDROID_HOME:-\\\$HOME/android-sdk}|export ANDROID_HOME=$ANDROID_SDK_ROOT|g" android/build.sh 
           chmod +x android/build.sh 
       - name: Build APK 
