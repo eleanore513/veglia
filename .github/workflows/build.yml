@@ -1,2 +1,29 @@
 name: Build Android APK 
-on: [push, workflow_dispatch] jobs: build: runs-on: ubuntu-latest steps: - uses: actions/checkout@v4 - name: set up JDK 17 uses: actions/setup-java@v4 with: java-version: '17' distribution: 'temurin' - name: Setup Android SDK Environment run: | echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> $GITHUB_ENV export ANDROID_HOME=$ANDROID_SDK_ROOT # 接受许可并安装指定的 SDK 平台和编译工具 yes | sdkmanager --licenses sdkmanager "platforms;android-34" "build-tools;34.0.0" # 修正 build.sh 里的 ANDROID_HOME 路径 sed -i "s|export ANDROID_HOME=\\\${ANDROID_HOME:-\\\$HOME/android-sdk}|export ANDROID_HOME=$ANDROID_SDK_ROOT|g" android/build.sh chmod +x android/build.sh - name: Build APK run: | cd android ./build.sh - name: Upload APK uses: actions/upload-artifact@v4 with: name: Veglia-APK path: android/Veglia.apk
+on: [push, workflow_dispatch] 
+jobs:
+  build:
+    runs-on: ubuntu-latest 
+    steps:
+      - uses: actions/checkout@v4 
+      - name: set up JDK 17 
+        uses: actions/setup-java@v4 
+        with: 
+          java-version: '17' 
+          distribution: 'temurin'
+      - name: Setup Android SDK Environment 
+        run: | 
+          echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> $GITHUB_ENV 
+          export ANDROID_HOME=$ANDROID_SDK_ROOT # 接受许可并安装指定的 SDK 平台和编译工具 
+          yes | sdkmanager --licenses 
+          sdkmanager "platforms;android-34" "build-tools;34.0.0" # 修正 build.sh 里的 ANDROID_HOME 路径 
+          sed -i "s|export ANDROID_HOME=\\\${ANDROID_HOME:-\\\$HOME/android-sdk}|export ANDROID_HOME=$ANDROID_SDK_ROOT|g" android/build.sh 
+          chmod +x android/build.sh 
+      - name: Build APK 
+        run: | 
+          cd android 
+          ./build.sh 
+      - name: Upload APK 
+        uses: actions/upload-artifact@v4 
+        with: 
+          name: Veglia-APK 
+          path: android/Veglia.apk
